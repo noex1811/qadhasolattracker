@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qada' Solat Tracker - Final Fix</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f8fb; margin: 0; padding: 20px; }
+    h1, h2 { text-align: center; }
+    .tracker { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background: #e3f2fd; }
+    input[type="number"] { width: 80px; padding: 5px; }
+    button { padding: 5px 10px; background-color: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background-color: #1565c0; }
+    .total { font-weight: bold; font-size: 1.1em; color: #0d47a1; }
+    footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="tracker">
+    <h1>Qada' Solat Tracker</h1>
+
+    <h2>🧕 Norule (7868 waktu setiap solat)</h2>
+    <table>
+      <tr><th>Waktu Solat</th><th>Telah Diqada’</th><th>Baki</th><th>Tindakan</th></tr>
+      <tr><td>Subuh</td><td><input type="number" id="norule_subuh" min="0"></td><td id="baki_norule_subuh" class="total">-</td><td><button onclick="simpanData('Norule', 'Subuh')">Simpan</button></td></tr>
+      <tr><td>Zohor</td><td><input type="number" id="norule_zohor" min="0"></td><td id="baki_norule_zohor" class="total">-</td><td><button onclick="simpanData('Norule', 'Zohor')">Simpan</button></td></tr>
+      <tr><td>Asar</td><td><input type="number" id="norule_asar" min="0"></td><td id="baki_norule_asar" class="total">-</td><td><button onclick="simpanData('Norule', 'Asar')">Simpan</button></td></tr>
+      <tr><td>Maghrib</td><td><input type="number" id="norule_maghrib" min="0"></td><td id="baki_norule_maghrib" class="total">-</td><td><button onclick="simpanData('Norule', 'Maghrib')">Simpan</button></td></tr>
+      <tr><td>Isyak</td><td><input type="number" id="norule_isyak" min="0"></td><td id="baki_norule_isyak" class="total">-</td><td><button onclick="simpanData('Norule', 'Isyak')">Simpan</button></td></tr>
+    </table>
+
+    <h2>🧔 Kusairi (9721 waktu setiap solat)</h2>
+    <table>
+      <tr><th>Waktu Solat</th><th>Telah Diqada’</th><th>Baki</th><th>Tindakan</th></tr>
+      <tr><td>Subuh</td><td><input type="number" id="kusairi_subuh" min="0"></td><td id="baki_kusairi_subuh" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Subuh')">Simpan</button></td></tr>
+      <tr><td>Zohor</td><td><input type="number" id="kusairi_zohor" min="0"></td><td id="baki_kusairi_zohor" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Zohor')">Simpan</button></td></tr>
+      <tr><td>Asar</td><td><input type="number" id="kusairi_asar" min="0"></td><td id="baki_kusairi_asar" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Asar')">Simpan</button></td></tr>
+      <tr><td>Maghrib</td><td><input type="number" id="kusairi_maghrib" min="0"></td><td id="baki_kusairi_maghrib" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Maghrib')">Simpan</button></td></tr>
+      <tr><td>Isyak</td><td><input type="number" id="kusairi_isyak" min="0"></td><td id="baki_kusairi_isyak" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Isyak')">Simpan</button></td></tr>
+    </table>
+  </div>
+
+  <footer>
+    <p>💡 Inovasi Digital oleh <strong>DyNa Moss</strong></p>
+    <p>📅 Tarikh dibina: <strong>17 Julai 2025</strong></p>
+    <p>⏳ Web ini telah beroperasi selama: <span id="masaOperasi"></span></p>
+  </footer>
+
+  <script>
+    const jumlahAsal = { "Norule": 7868, "Kusairi": 9721 };
+    const webAppURL = "https://script.google.com/macros/s/AKfycbwDBpRdAaOILqEYe6GI30QO-_If9IQhVzHp9VB0yQ7em1KUVNCZbR6h6BgMwvXDkVurUg/exec";
+
+    async function fetchData() {
+      const res = await fetch(webAppURL);
+      return await res.json();
+    }
+
+    function updateBakiFromSheet(data) {
+      const rows = data.slice(1);
+      for (const row of rows) {
+        const nama = row[0];
+        const waktuList = ["Subuh", "Zohor", "Asar", "Maghrib", "Isyak"];
+        waktuList.forEach((waktu, idx) => {
+          const idBaki = `baki_${nama.toLowerCase()}_${waktu.toLowerCase()}`;
+          const idInput = `${nama.toLowerCase()}_${waktu.toLowerCase()}`;
+          const val = parseInt(row[idx + 1]) || 0;
+          document.getElementById(idBaki).textContent = jumlahAsal[nama] - val;
+          document.getElementById(idInput).value = val;
+        });
+      }
+    }
+
+    async function simpanData(nama, waktu) {
+      const inputId = `${nama.toLowerCase()}_${waktu.toLowerCase()}`;
+      const value = parseInt(document.getElementById(inputId).value) || 0;
+      await fetch(webAppURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nama, waktu, kiraan: value })
+      });
+      const data = await fetchData();
+      updateBakiFromSheet(data);
+    }
+
+    function kiraMasaOperasi() {
+      const mula = new Date("2025-07-17T00:00:00");
+      const sekarang = new Date();
+      const beza = sekarang - mula;
+      const minit = Math.floor(beza / 60000) % 60;
+      const jam = Math.floor(beza / 3600000) % 24;
+      const hari = Math.floor(beza / (3600000 * 24)) % 30;
+      const bulan = Math.floor(beza / (3600000 * 24 * 30));
+      document.getElementById("masaOperasi").textContent = `${bulan} bulan, ${hari} hari, ${jam} jam, ${minit} minit`;
+    }
+
+    window.onload = async () => {
+      try {
+        const data = await fetchData();
+        updateBakiFromSheet(data);
+      } catch (err) {
+        console.error("Gagal fetch:", err);
+      }
+      kiraMasaOperasi();
+      setInterval(kiraMasaOperasi, 60000);
+    };
+  </script>
+</body>
+</html>
