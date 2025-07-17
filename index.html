@@ -12,8 +12,9 @@
     th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
     th { background: #e3f2fd; }
     input[type="number"] { width: 80px; padding: 5px; }
-    button { padding: 5px 10px; background-color: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button { padding: 5px 10px; background-color: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
     button:hover { background-color: #1565c0; }
+    button:disabled { background-color: #90a4ae; cursor: not-allowed; }
     .total { font-weight: bold; font-size: 1.1em; color: #0d47a1; }
     footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #555; }
   </style>
@@ -51,24 +52,31 @@
 
   <script>
     const jumlahAsal = { "Norule": 7868, "Kusairi": 9721 };
-    const webAppURL = "https://script.google.com/macros/s/AKfycbwy2_uzpRXq7oeyee23b0tmfHGhiRmRRsCQI5XfSvBVE_WMfvMK9oRUvpDKv2smU3DWjw/exec";
+    // !!! PENTING: GANTIKAN DENGAN URL WEB APP BAHARU ANDA !!!
+    const webAppURL = "https://script.google.com/macros/s/AKfycbyyAhsCWwNDD60nESSE07YwjsDpLENI9MWPpPlIBIHixRd6C6u08k-FChJG_lbMeHve-Q/exec";
 
     async function fetchData() {
       const res = await fetch(webAppURL);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       return await res.json();
     }
 
     function updateBakiFromSheet(data) {
-      const rows = data.slice(1);
+      const rows = data.slice(1); // Skip header row
       for (const row of rows) {
         const nama = row[0];
+        if (!nama || !jumlahAsal[nama]) continue; // Skip if name is invalid or not in our list
+        
         const waktuList = ["Subuh", "Zohor", "Asar", "Maghrib", "Isyak"];
         waktuList.forEach((waktu, idx) => {
           const idBaki = `baki_${nama.toLowerCase()}_${waktu.toLowerCase()}`;
           const idInput = `${nama.toLowerCase()}_${waktu.toLowerCase()}`;
           const val = parseInt(row[idx + 1]) || 0;
-          document.getElementById(idBaki).textContent = jumlahAsal[nama] - val;
+          
           document.getElementById(idInput).value = val;
+          document.getElementById(idBaki).textContent = jumlahAsal[nama] - val;
         });
       }
     }
@@ -76,13 +84,35 @@
     async function simpanData(nama, waktu) {
       const inputId = `${nama.toLowerCase()}_${waktu.toLowerCase()}`;
       const value = parseInt(document.getElementById(inputId).value) || 0;
-      await fetch(webAppURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nama, waktu, kiraan: value })
-      });
-      const data = await fetchData();
-      updateBakiFromSheet(data);
+      
+      const button = document.querySelector(`button[onclick="simpanData('${nama}', '${waktu}')"]`);
+      button.textContent = 'Menyimpan...';
+      button.disabled = true;
+
+      try {
+        const response = await fetch(webAppURL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nama, waktu, kiraan: value })
+        });
+
+        if (!response.ok) {
+            throw new Error('Ralat semasa menghantar data ke server.');
+        }
+
+        // Selepas POST berjaya, fetch data terkini untuk update UI
+        const dataTerkini = await fetchData();
+        updateBakiFromSheet(dataTerkini);
+        // alert(`Data untuk ${nama} (${waktu}) telah berjaya disimpan!`); // Optional
+
+      } catch (err) {
+        console.error("Gagal menyimpan data:", err);
+        alert("Gagal menyimpan data. Sila periksa sambungan internet dan cuba lagi.");
+      } finally {
+        // Kembalikan butang ke keadaan asal
+        button.textContent = 'Simpan';
+        button.disabled = false;
+      }
     }
 
     function kiraMasaOperasi() {
@@ -91,20 +121,27 @@
       const beza = sekarang - mula;
       const minit = Math.floor(beza / 60000) % 60;
       const jam = Math.floor(beza / 3600000) % 24;
-      const hari = Math.floor(beza / (3600000 * 24)) % 30;
-      const bulan = Math.floor(beza / (3600000 * 24 * 30));
-      document.getElementById("masaOperasi").textContent = `${bulan} bulan, ${hari} hari, ${jam} jam, ${minit} minit`;
+      const hari = Math.floor(beza / (3600000 * 24)); // Papar jumlah hari, lebih mudah dibaca
+      document.getElementById("masaOperasi").textContent = `${hari} hari, ${jam} jam, ${minit} minit`;
     }
 
     window.onload = async () => {
+      if (webAppURL === "GANTIKAN_DENGAN_URL_BAHARU_ANDA_DI_SINI") {
+        alert("Sila kemas kini pembolehubah 'webAppURL' dalam kod JavaScript dengan URL Google Apps Script anda yang baharu.");
+        return;
+      }
       try {
+        document.body.style.cursor = 'wait'; // Tunjuk loading cursor
         const data = await fetchData();
         updateBakiFromSheet(data);
       } catch (err) {
-        console.error("Gagal fetch:", err);
+        console.error("Gagal memuatkan data awal:", err);
+        alert("Gagal memuatkan data dari Google Sheet. Pastikan URL web app adalah betul dan deployment mempunyai kebenaran 'Anyone'.");
+      } finally {
+        document.body.style.cursor = 'default';
+        kiraMasaOperasi();
+        setInterval(kiraMasaOperasi, 60000);
       }
-      kiraMasaOperasi();
-      setInterval(kiraMasaOperasi, 60000);
     };
   </script>
 </body>
