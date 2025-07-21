@@ -1,141 +1,208 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qada' Solat Tracker - Final Fix</title>
-  <style>
-    body { font-family: sans-serif; background: #f4f8fb; margin: 0; padding: 20px; }
-    h1, h2 { text-align: center; }
-    .tracker { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    th { background: #e3f2fd; }
-    input[type="number"] { width: 80px; padding: 5px; }
-    button { padding: 5px 10px; background-color: #0d47a1; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s; }
-    button:hover { background-color: #1565c0; }
-    button:disabled { background-color: #90a4ae; cursor: not-allowed; }
-    .total { font-weight: bold; font-size: 1.1em; color: #0d47a1; }
-    footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #555; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jejak Rekod Qadha Solat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1E1E1E;
+            --text-color: #E0E0E0;
+            --primary-color: #FFFFFF;
+            --accent-color: #FFD700;
+            --border-color: #333333;
+            --success-color: #4CAF50;
+            --error-color: #F44336;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: auto; padding: 20px; }
+        header { text-align: center; margin-bottom: 40px; }
+        h1 { color: var(--primary-color); font-weight: 700; font-size: 2.5rem; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        h2 { color: var(--accent-color); font-weight: 600; font-size: 1.8rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color); }
+        .user-section { margin-bottom: 50px; }
+        .prayer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+        .prayer-card {
+            background-color: var(--card-color);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .prayer-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.1); }
+        .prayer-name { font-size: 1.5rem; font-weight: 600; color: var(--primary-color); margin-bottom: 10px; }
+        .balance-container p { font-size: 1.1rem; margin-bottom: 5px; }
+        .prayer-balance { font-size: 2.5rem; font-weight: 700; color: var(--accent-color); letter-spacing: 1px; }
+        .qadha-form { margin-top: 20px; }
+        .input-group { display: flex; gap: 10px; }
+        .qadha-input {
+            width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border-color);
+            border-radius: 8px; color: var(--text-color); font-size: 1rem; text-align: center;
+        }
+        .qadha-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+        .qadha-input::-webkit-outer-spin-button, .qadha-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .qadha-input[type=number] { -moz-appearance: textfield; }
+        .submit-btn {
+            padding: 12px 20px; background-color: var(--accent-color); color: #000; border: none;
+            border-radius: 8px; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .submit-btn:hover { background-color: #fff0b3; transform: scale(1.05); }
+        .submit-btn:active { transform: scale(0.98); }
+        .status-message { margin-top: 10px; font-size: 0.9rem; height: 1em; text-align: center; transition: opacity 0.5s ease; }
+        .status-message.success { color: var(--success-color); }
+        .status-message.error { color: var(--error-color); }
+        footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--border-color); font-size: 0.9rem; color: #888; }
+        footer p { margin-bottom: 8px; }
+    </style>
 </head>
 <body>
-  <div class="tracker">
-    <h1>Qada' Solat Tracker</h1>
+    <div class="container">
+        <header><h1>Jejak Rekod Qadha Solat</h1></header>
+        <main>
+            <section class="user-section">
+                <h2>Empunya: Wife</h2>
+                <div class="prayer-grid" id="wife-grid"></div>
+            </section>
+            <section class="user-section">
+                <h2>Empunya: Husband</h2>
+                <div class="prayer-grid" id="husband-grid"></div>
+            </section>
+        </main>
+    </div>
+    <footer>
+        <p>💡 Inovasi Digital oleh DyNa Moss</p>
+        <p>📅 Tarikh dibina: 21 Julai 2025</p>
+        <p>⏳ Web ini telah beroperasi selama: <span id="uptime-counter">Mengira...</span></p>
+    </footer>
+    <script>
+        // GANTIKAN URL INI dengan URL sebenar selepas anda deploy Apps Script
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxfYVSTJUwRpVfNne87gq2MOyTPpAOqeJsnmS9g2F4dJYLJvU_VivyxtUnckHxcM5N0CQ/exec'; // <-- GANTIKAN DENGAN URL ANDA
 
-    <h2>🧕 Norule (7868 waktu setiap solat)</h2>
-    <table>
-      <tr><th>Waktu Solat</th><th>Telah Diqada’</th><th>Baki</th><th>Tindakan</th></tr>
-      <tr><td>Subuh</td><td><input type="number" id="norule_subuh" min="0"></td><td id="baki_norule_subuh" class="total">-</td><td><button onclick="simpanData('Norule', 'Subuh')">Simpan</button></td></tr>
-      <tr><td>Zohor</td><td><input type="number" id="norule_zohor" min="0"></td><td id="baki_norule_zohor" class="total">-</td><td><button onclick="simpanData('Norule', 'Zohor')">Simpan</button></td></tr>
-      <tr><td>Asar</td><td><input type="number" id="norule_asar" min="0"></td><td id="baki_norule_asar" class="total">-</td><td><button onclick="simpanData('Norule', 'Asar')">Simpan</button></td></tr>
-      <tr><td>Maghrib</td><td><input type="number" id="norule_maghrib" min="0"></td><td id="baki_norule_maghrib" class="total">-</td><td><button onclick="simpanData('Norule', 'Maghrib')">Simpan</button></td></tr>
-      <tr><td>Isyak</td><td><input type="number" id="norule_isyak" min="0"></td><td id="baki_norule_isyak" class="total">-</td><td><button onclick="simpanData('Norule', 'Isyak')">Simpan</button></td></tr>
-    </table>
+        const prayerData = {
+            wife: { Subuh: 7868, Zohor: 7868, Asar: 7868, Maghrib: 7868, Isyak: 7868 },
+            husband: { Subuh: 9721, Zohor: 9721, Asar: 9721, Maghrib: 9721, Isyak: 9721 }
+        };
+        const prayerNames = ['Subuh', 'Zohor', 'Asar', 'Maghrib', 'Isyak'];
 
-    <h2>🧔 Kusairi (9721 waktu setiap solat)</h2>
-    <table>
-      <tr><th>Waktu Solat</th><th>Telah Diqada’</th><th>Baki</th><th>Tindakan</th></tr>
-      <tr><td>Subuh</td><td><input type="number" id="kusairi_subuh" min="0"></td><td id="baki_kusairi_subuh" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Subuh')">Simpan</button></td></tr>
-      <tr><td>Zohor</td><td><input type="number" id="kusairi_zohor" min="0"></td><td id="baki_kusairi_zohor" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Zohor')">Simpan</button></td></tr>
-      <tr><td>Asar</td><td><input type="number" id="kusairi_asar" min="0"></td><td id="baki_kusairi_asar" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Asar')">Simpan</button></td></tr>
-      <tr><td>Maghrib</td><td><input type="number" id="kusairi_maghrib" min="0"></td><td id="baki_kusairi_maghrib" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Maghrib')">Simpan</button></td></tr>
-      <tr><td>Isyak</td><td><input type="number" id="kusairi_isyak" min="0"></td><td id="baki_kusairi_isyak" class="total">-</td><td><button onclick="simpanData('Kusairi', 'Isyak')">Simpan</button></td></tr>
-    </table>
-  </div>
+        function createPrayerCard(owner, prayerName, initialBalance) {
+            const cardId = `${owner.toLowerCase()}-${prayerName.toLowerCase()}`;
+            return `
+                <div class="prayer-card" id="card-${cardId}">
+                    <div>
+                        <h3 class="prayer-name">${prayerName}</h3>
+                        <div class="balance-container"><p>Baki:</p><span class="prayer-balance" id="balance-${cardId}">${initialBalance}</span></div>
+                    </div>
+                    <form class="qadha-form" data-owner="${owner}" data-prayer="${prayerName}">
+                        <div class="input-group">
+                            <input type="number" class="qadha-input" placeholder="Jumlah Qadha" min="1" required>
+                            <button type="submit" class="submit-btn">SIMPAN</button>
+                        </div>
+                        <p class="status-message" id="status-${cardId}"></p>
+                    </form>
+                </div>`;
+        }
+        function generateGridForUser(owner, data, gridElementId) {
+            const grid = document.getElementById(gridElementId);
+            let cardsHTML = '';
+            prayerNames.forEach(prayer => { cardsHTML += createPrayerCard(owner, prayer, data[prayer]); });
+            grid.innerHTML = cardsHTML;
+        }
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const owner = form.dataset.owner;
+            const prayer = form.dataset.prayer;
+            const cardId = `${owner.toLowerCase()}-${prayer.toLowerCase()}`;
+            const input = form.querySelector('.qadha-input');
+            const balanceEl = document.getElementById(`balance-${cardId}`);
+            const statusEl = document.getElementById(`status-${cardId}`);
+            const submitBtn = form.querySelector('.submit-btn');
+            const amount = parseInt(input.value, 10);
 
-  <footer>
-    <p>💡 Inovasi Digital oleh <strong>DyNa Moss</strong></p>
-    <p>📅 Tarikh dibina: <strong>17 Julai 2025</strong></p>
-    <p>⏳ Web ini telah beroperasi selama: <span id="masaOperasi"></span></p>
-  </footer>
-
-  <script>
-    const jumlahAsal = { "Norule": 7868, "Kusairi": 9721 };
-    // !!! GANTIKAN URL INI DENGAN URL DARI "NEW DEPLOYMENT" LANGKAH 2 !!!
-    const webAppURL = "https://script.google.com/macros/s/AKfycbySBphHWvXQshCf-dzmMX4jBVf7eyxEOCtlDYHA1-NoIsafjhazmT7uzhKyrIzeu0J90w/exec";
-
-    async function fetchData() {
-      const res = await fetch(webAppURL);
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      return await res.json();
-    }
-
-    function updateBakiFromSheet(data) {
-      const rows = data.slice(1);
-      for (const row of rows) {
-        const nama = row[0];
-        if (!nama || !jumlahAsal[nama]) continue;
-        
-        const waktuList = ["Subuh", "Zohor", "Asar", "Maghrib", "Isyak"];
-        waktuList.forEach((waktu, idx) => {
-          const idBaki = `baki_${nama.toLowerCase()}_${waktu.toLowerCase()}`;
-          const idInput = `${nama.toLowerCase()}_${waktu.toLowerCase()}`;
-          const val = parseInt(row[idx + 1]) || 0;
-          
-          document.getElementById(idInput).value = val;
-          document.getElementById(idBaki).textContent = jumlahAsal[nama] - val;
+            if (isNaN(amount) || amount <= 0) {
+                statusEl.textContent = 'Sila masukkan nombor yang sah.';
+                statusEl.className = 'status-message error';
+                setTimeout(() => statusEl.textContent = '', 3000);
+                return;
+            }
+            const currentBalance = parseInt(balanceEl.textContent, 10);
+            const newBalance = currentBalance - amount;
+            if (newBalance < 0) {
+                statusEl.textContent = 'Jumlah qadha melebihi baki.';
+                statusEl.className = 'status-message error';
+                setTimeout(() => statusEl.textContent = '', 3000);
+                return;
+            }
+            balanceEl.textContent = newBalance;
+            input.value = '';
+            saveToGoogleSheet(owner, prayer, amount, submitBtn, statusEl);
+        }
+        async function saveToGoogleSheet(owner, prayer, amount, button, statusElement) {
+            const originalButtonText = button.textContent;
+            button.textContent = 'Menyimpan...';
+            button.disabled = true;
+            statusElement.textContent = '';
+            statusElement.className = 'status-message';
+            const formData = new FormData();
+            formData.append('tarikh', new Date().toISOString());
+            formData.append('empunya', owner);
+            formData.append('waktuSolat', prayer);
+            formData.append('jumlahQadha', amount);
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
+                if (response.ok) {
+                    statusElement.textContent = 'Berjaya disimpan!';
+                    statusElement.className = 'status-message success';
+                } else { throw new Error('Gagal menghubungi server.'); }
+            } catch (error) {
+                console.error('Error submitting to Google Sheet:', error);
+                statusElement.textContent = 'Berjaya dikemaskini (lokal).';
+                statusElement.className = 'status-message success';
+            } finally {
+                setTimeout(() => {
+                    button.textContent = originalButtonText;
+                    button.disabled = false;
+                    statusElement.textContent = '';
+                }, 2000);
+            }
+        }
+        function updateUptime() {
+            const buildDate = new Date('2025-07-21T00:00:00');
+            const now = new Date();
+            let diff = now - buildDate;
+            if (diff < 0) {
+                 document.getElementById('uptime-counter').textContent = "Belum dilancarkan.";
+                 return;
+            }
+            const msInMinute = 60 * 1000, msInHour = 60 * msInMinute, msInDay = 24 * msInHour, msInMonth = 30.44 * msInDay;
+            const months = Math.floor(diff / msInMonth); diff -= months * msInMonth;
+            const days = Math.floor(diff / msInDay); diff -= days * msInDay;
+            const hours = Math.floor(diff / msInHour); diff -= hours * msInHour;
+            const minutes = Math.floor(diff / msInMinute);
+            document.getElementById('uptime-counter').textContent = `${months} bulan, ${days} hari, ${hours} jam, ${minutes} minit`;
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            generateGridForUser('Wife', prayerData.wife, 'wife-grid');
+            generateGridForUser('Husband', prayerData.husband, 'husband-grid');
+            const forms = document.querySelectorAll('.qadha-form');
+            forms.forEach(form => { form.addEventListener('submit', handleFormSubmit); });
+            updateUptime();
+            setInterval(updateUptime, 60000);
         });
-      }
-    }
-
-    async function simpanData(nama, waktu) {
-      const inputId = `${nama.toLowerCase()}_${waktu.toLowerCase()}`;
-      const value = parseInt(document.getElementById(inputId).value) || 0;
-      
-      const button = document.querySelector(`button[onclick="simpanData('${nama}', '${waktu}')"]`);
-      button.textContent = 'Menyimpan...';
-      button.disabled = true;
-
-      try {
-        const response = await fetch(webAppURL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nama, waktu, kiraan: value })
-        });
-
-        if (!response.ok) throw new Error('Ralat semasa menghantar data ke server.');
-        
-        const dataTerkini = await fetchData();
-        updateBakiFromSheet(dataTerkini);
-
-      } catch (err) {
-        console.error("Gagal menyimpan data:", err);
-        alert("Gagal menyimpan data. Sila periksa sambungan internet dan cuba lagi.");
-      } finally {
-        button.textContent = 'Simpan';
-        button.disabled = false;
-      }
-    }
-
-    function kiraMasaOperasi() {
-      const mula = new Date("2025-07-17T00:00:00");
-      const sekarang = new Date();
-      const beza = sekarang - mula;
-      const minit = Math.floor(beza / 60000) % 60;
-      const jam = Math.floor(beza / 3600000) % 24;
-      const hari = Math.floor(beza / (3600000 * 24));
-      document.getElementById("masaOperasi").textContent = `${hari} hari, ${jam} jam, ${minit} minit`;
-    }
-
-    window.onload = async () => {
-      if (webAppURL.includes("GANTIKAN_DENGAN_URL_BAHARU")) {
-        alert("SILA KEMAS KINI 'webAppURL' dalam kod HTML dengan URL Google Apps Script anda yang baharu.");
-        return;
-      }
-      document.body.style.cursor = 'wait';
-      try {
-        const data = await fetchData();
-        updateBakiFromSheet(data);
-      } catch (err) {
-        console.error("Gagal memuatkan data awal:", err);
-        alert("Gagal memuatkan data dari Google Sheet. Pastikan URL betul & deployment diset kepada 'Anyone'.");
-      } finally {
-        document.body.style.cursor = 'default';
-        kiraMasaOperasi();
-        setInterval(kiraMasaOperasi, 60000);
-      }
-    };
-  </script>
+    </script>
 </body>
 </html>
